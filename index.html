@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vesta Script</title>
+  <script src="https://cdn.jsdelivr.net/npm/rrweb@latest/dist/rrweb.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/rrweb-player@latest/dist/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bowser@2.11.0/bundled.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/rrweb-player@latest/dist/style.css"
+  />
+</head>
+<body>
+  <h1>Interact with this page</h1>
+  <input id="input" type="text" placeholder="Type something..." />
+  <button id="button" onclick="alert('Button clicked!')">Click Me</button>
+
+  <div style="margin-top: 20px;">
+    <button id="playBtn" disabled>Play Recording</button>
+  </div>
+
+  <div id="playerContainer"></div>
+
+  <script>
+    // === Browser Info ===
+    const browser = bowser.getParser(window.navigator.userAgent);
+    const browserInfo = browser.getBrowser();
+    const osInfo = browser.getOS();
+    const platform = browser.getPlatform();
+
+    console.group('Browser & OS Info');
+    console.log('Browser:', browserInfo);
+    console.log('OS:', osInfo);
+    console.log('Platform:', platform);
+    console.groupEnd();
+
+    // === rrweb Recording ===
+    const events = [];
+    rrweb.record({
+      emit(event) {
+        events.push(event);
+        console.log('rrweb event:', event);
+      },
+    });
+
+    const playBtn = document.getElementById('playBtn');
+    const playerContainer = document.getElementById('playerContainer');
+
+    // Stop recording and enable playback
+    setTimeout(() => {
+      console.group('rrweb Session Snapshot');
+      console.log(events);
+      console.groupEnd();
+      alert('Session recording complete. You can now play the session.');
+      playBtn.disabled = false;
+    }, 10000);
+
+    playBtn.addEventListener('click', () => {
+      playerContainer.innerHTML = ''; // clear previous playback
+      new rrwebPlayer({
+        target: playerContainer,
+        props: {
+          events: events,
+          autoPlay: true,
+        },
+      });
+    });
+
+    // === FingerprintJS ===
+    FingerprintJS.load().then(fp => {
+      fp.get().then(result => {
+        const { visitorId, components } = result;
+        console.group('FingerprintJS - Device Info');
+        console.log('Visitor ID:', visitorId);
+        console.log('Screen:', `${components.screenResolution.value.join('x')}`);
+        console.log('Timezone:', components.timezone.value);
+        console.log('Memory:', navigator.deviceMemory || 'N/A');
+        console.groupEnd();
+      });
+    });
+  </script>
+</body>
+</html>
